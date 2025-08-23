@@ -2,8 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { RiskPill } from "@/components/ui/risk-pill"
-import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, Minus, Zap, Target, AlertTriangle } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Zap, Target } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useUser } from "@clerk/nextjs"
 
