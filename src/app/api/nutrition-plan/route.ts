@@ -112,10 +112,24 @@ export async function GET(_request: NextRequest) {
       );
     }
 
+    let user = await prisma.user.findFirst({
+      where: {
+        id: userId
+      }
+    })
+
+    if(!user) {
+      user = await prisma.user.create({
+        data: {
+          id: userId
+        }
+      })
+    }
+
     // Obtener los planes nutricionales del usuario desde la base de datos
     const nutritionalPlans = await prisma.nutritionalPlan.findMany({
       where: {
-        userId: userId,
+        userId: user.id,
       },
       orderBy: {
         createdAt: 'desc', // Más recientes primero
