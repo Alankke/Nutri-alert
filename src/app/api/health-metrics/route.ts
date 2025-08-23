@@ -102,3 +102,27 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    // Puedes filtrar por usuario si recibes un userId por query param
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+
+    const where = userId ? { userId } : {};
+
+    const metrics = await prisma.healthMetrics.findMany({
+      where,
+      orderBy: { date: "desc" },
+      take: 20, // Limita a los últimos 20 registros
+    });
+
+    return NextResponse.json(metrics);
+  } catch (error) {
+    console.error("Error al obtener métricas de salud:", error);
+    return NextResponse.json(
+      { error: "Error interno del servidor" },
+      { status: 500 }
+    );
+  }
+}
