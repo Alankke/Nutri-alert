@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "NutriAlert",
-  description: "NutriAlert es una aplicación que te ayuda a generar un plan de alimentación",
+  description:
+    "NutriAlert es una aplicación que te ayuda a generar un plan de alimentación",
 };
 
 export default function RootLayout({
@@ -27,7 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ClerkProvider>{children}</ClerkProvider>
       </body>
     </html>
   );
