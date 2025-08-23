@@ -48,7 +48,7 @@ export async function testHealthMetrics() {
 }
 
 // Función para probar el endpoint de plan nutricional
-export async function testNutritionPlan(healthMetrics: any) {
+export async function testNutritionPlan(healthMetrics: Record<string, unknown>) {
   try {
     const response = await fetch('/api/nutrition-plan', {
       method: 'POST',
@@ -95,7 +95,7 @@ export async function testCompleteFlow() {
 // Ejemplo de uso en el navegador
 if (typeof window !== 'undefined') {
   // Solo ejecutar en el navegador
-  (window as any).testNutritionAPI = {
+  (window as unknown as Record<string, unknown>).testNutritionAPI = {
     testHealthMetrics,
     testNutritionPlan,
     testCompleteFlow,

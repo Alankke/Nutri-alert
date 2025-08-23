@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       .replace("{height}", userData.measurements.height.toString())
       .replace("{waist}", userData.measurements.waist?.toString() || "N/A")
       .replace("{targetCalories}", userData.targetCalories.toString())
-      .replace("{sleepHours}", userData.lifestyle.sleepHours.toString())
+      .replace("{sleepHours}", (userData.lifestyle.sleepHours || 7).toString())
       .replace("{season}", userData.lifestyle.season);
 
     // Generar el plan nutricional usando Gemini
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const text = response.text;
 
     // Extraer el JSON de la respuesta
-    let nutritionPlanData: any;
+    let nutritionPlanData: Record<string, unknown>;
     try {
       // Buscar el JSON en la respuesta (puede tener texto adicional)
       const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -78,11 +78,11 @@ export async function POST(request: NextRequest) {
       userId: userData.userId,
       goal: userData.profile.goal,
       targetCalories: userData.targetCalories,
-      dailyMealPlans: nutritionPlanData.dailyMealPlans || [],
-      recommendations: nutritionPlanData.recommendations || {
-        general: [],
-        specific: [],
-        seasonal: [],
+      dailyMealPlans: Array.isArray(nutritionPlanData.dailyMealPlans) ? nutritionPlanData.dailyMealPlans : [],
+      recommendations: {
+        general: Array.isArray((nutritionPlanData.recommendations as { general?: unknown; specific?: unknown; seasonal?: unknown })?.general) ? (nutritionPlanData.recommendations as { general: string[] }).general : [],
+        specific: Array.isArray((nutritionPlanData.recommendations as { general?: unknown; specific?: unknown; seasonal?: unknown })?.specific) ? (nutritionPlanData.recommendations as { specific: string[] }).specific : [],
+        seasonal: Array.isArray((nutritionPlanData.recommendations as { general?: unknown; specific?: unknown; seasonal?: unknown })?.seasonal) ? (nutritionPlanData.recommendations as { seasonal: string[] }).seasonal : [],
       },
       createdAt: new Date(),
       validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
