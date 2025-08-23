@@ -1,4 +1,4 @@
-import { PatientData, UserMetrics, HealthProgress, GamificationData, Badge, Mission, HealthResults } from "@/types/nutrition"
+import { PatientData, HealthProgress, GamificationData, HealthResults } from "@/types/nutrition"
 
 // Datos mock para pacientes
 export const mockPatients: PatientData[] = [

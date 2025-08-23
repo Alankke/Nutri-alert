@@ -170,7 +170,7 @@ export function validateUserData(metrics: HealthMetrics): string[] {
     errors.push("La edad debe estar entre 13 y 120 años");
   }
 
-  if (metrics.lifestyle.sleepHours < 4 || metrics.lifestyle.sleepHours > 16) {
+  if (metrics.lifestyle.sleepHours && (metrics.lifestyle.sleepHours < 4 || metrics.lifestyle.sleepHours > 16)) {
     errors.push("Las horas de sueño deben estar entre 4 y 16 horas");
   }
 
