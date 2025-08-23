@@ -52,150 +52,152 @@ export default function NuevaMetricaPage() {
   }
 
   // Cambia handleSubmit para llamar a la API
- const handleSubmit = async () => {
-  if (!user?.id) {
-    alert("Debes iniciar sesión para guardar tus métricas.")
-    return
-  }
-
-  // Convertir datos a números
-  const weight = Number(formData.weight)
-  const height = Number(formData.height)
-  const age = Number(formData.age)
-  const waist = formData.waist ? Number(formData.waist) : null
-  const hip = formData.hip ? Number(formData.hip) : null
-  const neck = formData.neck ? Number(formData.neck) : null
-
-  // Calcular BMI
-  const heightInMeters = height / 100
-  const bmi = weight / (heightInMeters * heightInMeters)
-
-  // Calcular WHTR (Waist-to-Height Ratio)
-  const whtr = waist ? waist / height : undefined
-
-  // Calcular BMR (Basal Metabolic Rate) usando fórmula Mifflin-St Jeor
-  let bmr
-  if (formData.biologicalSex === "male") {
-    bmr = 10 * weight + 6.25 * height - 5 * age + 5
-  } else {
-    bmr = 10 * weight + 6.25 * height - 5 * age - 161
-  }
-
-  // Multiplicadores de actividad física
-  const activityMultipliers = {
-    sedentary: 1.2,
-    light: 1.375,
-    moderate: 1.55,
-    high: 1.725
-  }
-
-  // Calcular TDEE (Total Daily Energy Expenditure)
-  const tdee = Math.round(bmr * activityMultipliers[formData.activityLevel])
-
-  // Calcular calorías objetivo según el objetivo
-  let targetCalories
-  switch (formData.goal) {
-    case "lose":
-      targetCalories = Math.round(tdee - 500) // Déficit de 500 cal
-      break
-    case "gain":
-      targetCalories = Math.round(tdee + 500) // Superávit de 500 cal
-      break
-    case "maintain":
-    default:
-      targetCalories = tdee
-      break
-  }
-
-  // Calcular macronutrientes (ejemplo de distribución estándar)
-  // Proteína: 25% de calorías (4 cal/g)
-  // Grasas: 30% de calorías (9 cal/g)  
-  // Carbohidratos: 45% de calorías (4 cal/g)
-  const protein = Math.round((targetCalories * 0.25) / 4)
-  const fat = Math.round((targetCalories * 0.30) / 9)
-  const carbs = Math.round((targetCalories * 0.45) / 4)
-
-  // Calcular nivel de riesgo basado en BMI y WHTR
-  let riskLevel = "low"
-  if (bmi >= 30 || (whtr && whtr >= 0.6)) {
-    riskLevel = "high"
-  } else if (bmi >= 25 || (whtr && whtr >= 0.5)) {
-    riskLevel = "medium"
-  }
-
-  // Calcular puntuación de salud (escala 0-100)
-  let healthScore = 100
-  
-  // Penalizar por BMI fuera de rango normal (18.5-24.9)
-  if (bmi < 18.5) {
-    healthScore -= 20
-  } else if (bmi >= 25 && bmi < 30) {
-    healthScore -= 15
-  } else if (bmi >= 30) {
-    healthScore -= 30
-  }
-  
-  // Penalizar por WHTR alto
-  if (whtr && whtr >= 0.6) {
-    healthScore -= 20
-  } else if (whtr && whtr >= 0.5) {
-    healthScore -= 10
-  }
-  
-  // Penalizar por pocas horas de sueño
-  const sleepHours = formData.sleepHours ? Number(formData.sleepHours) : 7
-  if (sleepHours < 6) {
-    healthScore -= 15
-  } else if (sleepHours < 7) {
-    healthScore -= 5
-  }
-  
-  // Asegurar que el score esté entre 0-100
-  healthScore = Math.max(0, Math.min(100, healthScore))
-
-  // Prepara el payload con los valores calculados
-  const payload = {
-    userId: user.id,
-    biologicalSex: formData.biologicalSex as "male" | "female",
-    age: age,
-    goal: formData.goal as "lose" | "maintain" | "gain",
-    activityLevel: formData.activityLevel as "sedentary" | "light" | "moderate" | "high",
-    weight: weight,
-    height: height,
-    waist: waist || undefined,
-    hip: hip || undefined,
-    neck: neck || undefined,
-    sleepHours: sleepHours,
-    season: formData.season as "summer" | "winter",
-    bmi: Math.round(bmi * 10) / 10, // Redondear a 1 decimal
-    whtr: whtr ? Math.round(whtr * 100) / 100 : undefined, // Redondear a 2 decimales
-    tdee: tdee,
-    targetCalories: targetCalories,
-    carbs: carbs,
-    protein: protein,
-    fat: fat,
-    riskLevel: riskLevel as "low" | "medium" | "high",
-    healthScore: healthScore,
-  }
-
-  try {
-    const res = await fetch("/api/health-metrics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-
-    if (!res.ok) {
-      const errorData = await res.json()
-      alert(errorData.error || "Error al guardar las métricas")
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      alert("Debes iniciar sesión para guardar tus métricas.")
       return
     }
 
-    alert("¡Métricas guardadas exitosamente!")
-  } catch {
-    alert("Error al guardar las métricas")
+    // Convertir datos a números
+    const weight = Number(formData.weight)
+    const height = Number(formData.height)
+    const age = Number(formData.age)
+    const waist = formData.waist ? Number(formData.waist) : null
+    const hip = formData.hip ? Number(formData.hip) : null
+    const neck = formData.neck ? Number(formData.neck) : null
+
+    // Calcular BMI
+    const heightInMeters = height / 100
+    const bmi = weight / (heightInMeters * heightInMeters)
+
+    // Calcular WHTR (Waist-to-Height Ratio)
+    const whtr = waist ? waist / height : undefined
+
+    // Calcular BMR (Basal Metabolic Rate) usando fórmula Mifflin-St Jeor
+    let bmr
+    if (formData.biologicalSex === "male") {
+      bmr = 10 * weight + 6.25 * height - 5 * age + 5
+    } else {
+      bmr = 10 * weight + 6.25 * height - 5 * age - 161
+    }
+
+    // Multiplicadores de actividad física con tipos explícitos
+    const activityMultipliers: Record<string, number> = {
+      sedentary: 1.2,
+      light: 1.375,
+      moderate: 1.55,
+      high: 1.725
+    }
+
+    // Calcular TDEE (Total Daily Energy Expenditure) con validación de tipo
+    const activityLevel = formData.activityLevel as keyof typeof activityMultipliers
+    const multiplier = activityMultipliers[activityLevel] || 1.2 // valor por defecto
+    const tdee = Math.round(bmr * multiplier)
+
+    // Calcular calorías objetivo según el objetivo
+    let targetCalories
+    switch (formData.goal) {
+      case "lose":
+        targetCalories = Math.round(tdee - 500) // Déficit de 500 cal
+        break
+      case "gain":
+        targetCalories = Math.round(tdee + 500) // Superávit de 500 cal
+        break
+      case "maintain":
+      default:
+        targetCalories = tdee
+        break
+    }
+
+    // Calcular macronutrientes (ejemplo de distribución estándar)
+    // Proteína: 25% de calorías (4 cal/g)
+    // Grasas: 30% de calorías (9 cal/g)  
+    // Carbohidratos: 45% de calorías (4 cal/g)
+    const protein = Math.round((targetCalories * 0.25) / 4)
+    const fat = Math.round((targetCalories * 0.30) / 9)
+    const carbs = Math.round((targetCalories * 0.45) / 4)
+
+    // Calcular nivel de riesgo basado en BMI y WHTR
+    let riskLevel: "low" | "medium" | "high" = "low"
+    if (bmi >= 30 || (whtr && whtr >= 0.6)) {
+      riskLevel = "high"
+    } else if (bmi >= 25 || (whtr && whtr >= 0.5)) {
+      riskLevel = "medium"
+    }
+
+    // Calcular puntuación de salud (escala 0-100)
+    let healthScore = 100
+    
+    // Penalizar por BMI fuera de rango normal (18.5-24.9)
+    if (bmi < 18.5) {
+      healthScore -= 20
+    } else if (bmi >= 25 && bmi < 30) {
+      healthScore -= 15
+    } else if (bmi >= 30) {
+      healthScore -= 30
+    }
+    
+    // Penalizar por WHTR alto
+    if (whtr && whtr >= 0.6) {
+      healthScore -= 20
+    } else if (whtr && whtr >= 0.5) {
+      healthScore -= 10
+    }
+    
+    // Penalizar por pocas horas de sueño
+    const sleepHours = formData.sleepHours ? Number(formData.sleepHours) : 7
+    if (sleepHours < 6) {
+      healthScore -= 15
+    } else if (sleepHours < 7) {
+      healthScore -= 5
+    }
+    
+    // Asegurar que el score esté entre 0-100
+    healthScore = Math.max(0, Math.min(100, healthScore))
+
+    // Prepara el payload con los valores calculados
+    const payload = {
+      userId: user.id,
+      biologicalSex: formData.biologicalSex as "male" | "female",
+      age: age,
+      goal: formData.goal as "lose" | "maintain" | "gain",
+      activityLevel: formData.activityLevel as "sedentary" | "light" | "moderate" | "high",
+      weight: weight,
+      height: height,
+      waist: waist || undefined,
+      hip: hip || undefined,
+      neck: neck || undefined,
+      sleepHours: sleepHours,
+      season: formData.season as "summer" | "winter",
+      bmi: Math.round(bmi * 10) / 10, // Redondear a 1 decimal
+      whtr: whtr ? Math.round(whtr * 100) / 100 : undefined, // Redondear a 2 decimales
+      tdee: tdee,
+      targetCalories: targetCalories,
+      carbs: carbs,
+      protein: protein,
+      fat: fat,
+      riskLevel: riskLevel,
+      healthScore: healthScore,
+    }
+
+    try {
+      const res = await fetch("/api/health-metrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        alert(errorData.error || "Error al guardar las métricas")
+        return
+      }
+
+      alert("¡Métricas guardadas exitosamente!")
+    } catch {
+      alert("Error al guardar las métricas")
+    }
   }
-}
 
   // Llama a Gemini automáticamente al llegar al paso 4
   useEffect(() => {
