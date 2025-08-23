@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { geminiModel, NUTRITION_PROMPT } from "@/lib/gemini";
-import { HealthMetrics, NutritionalPlan } from "@/types/nutrition";
+import { HealthMetrics, NutritionalPlan, DailyMealPlan } from "@/types/nutrition";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Obtener la sesión del usuario autenticado
     const { userId } = await auth();
@@ -127,11 +127,11 @@ export async function GET(request: NextRequest) {
       userId: plan.userId,
       goal: plan.goal,
       targetCalories: plan.targetCalories,
-      dailyMealPlans: Array.isArray(plan.dailyMealPlans) ? plan.dailyMealPlans as any[] : [],
+      dailyMealPlans: Array.isArray(plan.dailyMealPlans) ? plan.dailyMealPlans as unknown as DailyMealPlan[] : [],
       recommendations: {
-        general: Array.isArray((plan.recommendations as any)?.general) ? (plan.recommendations as any).general : [],
-        specific: Array.isArray((plan.recommendations as any)?.specific) ? (plan.recommendations as any).specific : [],
-        seasonal: Array.isArray((plan.recommendations as any)?.seasonal) ? (plan.recommendations as any).seasonal : [],
+        general: Array.isArray((plan.recommendations as { general?: string[]; specific?: string[]; seasonal?: string[] })?.general) ? (plan.recommendations as { general: string[] }).general : [],
+        specific: Array.isArray((plan.recommendations as { general?: string[]; specific?: string[]; seasonal?: string[] })?.specific) ? (plan.recommendations as { specific: string[] }).specific : [],
+        seasonal: Array.isArray((plan.recommendations as { general?: string[]; specific?: string[]; seasonal?: string[] })?.seasonal) ? (plan.recommendations as { seasonal: string[] }).seasonal : [],
       },
       createdAt: plan.createdAt,
       validUntil: plan.validUntil,

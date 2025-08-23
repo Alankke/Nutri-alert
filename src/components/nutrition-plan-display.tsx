@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { NutritionalPlan } from "@/types/nutrition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,13 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 export default function NutritionPlanDisplay() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const [nutritionalPlans, setNutritionalPlans] = useState<NutritionalPlan[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Función para obtener los planes nutricionales
-  const fetchNutritionalPlans = async () => {
+  const fetchNutritionalPlans = useCallback(async () => {
     if (!isSignedIn) return;
     
     setLoading(true);
@@ -40,14 +40,14 @@ export default function NutritionPlanDisplay() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isSignedIn]);
 
   // Cargar los planes cuando el usuario esté autenticado
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       fetchNutritionalPlans();
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, fetchNutritionalPlans]);
 
   // Estados de carga y no autenticado
   if (!isLoaded) {
