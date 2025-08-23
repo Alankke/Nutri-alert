@@ -49,10 +49,71 @@ export default function NuevaMetricaPage() {
     if (currentStep > 0) setCurrentStep(s => s - 1)
   }
 
-  const handleSubmit = () => {
-    // Aquí se enviarían los datos al backend
-    console.log("Datos del formulario:", formData)
-    alert("¡Métricas guardadas exitosamente!")
+  // Cambia handleSubmit para llamar a la API
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      alert("Debes iniciar sesión para guardar tus métricas.")
+      return
+    }
+
+    // Prepara el payload plano según espera tu endpoint y Prisma
+    const payload = {
+      userId: user.id,
+      biologicalSex: formData.sexo === "masculino" ? "male" : "female",
+      age: Number(formData.edad),
+      goal:
+        formData.objetivo === "bajar"
+          ? "lose"
+          : formData.objetivo === "mantener"
+          ? "maintain"
+          : "gain",
+      activityLevel:
+        formData.nivelActividad === "sedentario"
+          ? "sedentary"
+          : formData.nivelActividad === "ligero"
+          ? "light"
+          : formData.nivelActividad === "moderado"
+          ? "moderate"
+          : formData.nivelActividad === "activo"
+          ? "high"
+          : "high",
+      weight: Number(formData.peso),
+      height: Number(formData.altura),
+      waist: formData.cintura ? Number(formData.cintura) : undefined,
+      hip: formData.cadera ? Number(formData.cadera) : undefined,
+      neck: formData.cuello ? Number(formData.cuello) : undefined,
+      sleepHours: formData.horasSueno ? Number(formData.horasSueno) : 7,
+      season: formData.temporada === "verano" ? "summer" : "winter",
+      // Los siguientes valores deberías calcularlos antes de guardar,
+      // aquí se ponen como ejemplo, deberías reemplazarlos por los reales:
+      bmi: 0, // Calcula el BMI real aquí
+      whtr: undefined, // Calcula si tienes cintura y altura
+      tdee: 0, // Calcula el TDEE real aquí
+      targetCalories: 0, // Calcula el objetivo real aquí
+      carbs: 0, // Calcula los macros reales aquí
+      protein: 0,
+      fat: 0,
+      riskLevel: "low", // Calcula el riesgo real aquí
+      healthScore: 0, // Calcula el score real aquí
+    }
+
+    try {
+      const res = await fetch("/api/health-metrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        alert(errorData.error || "Error al guardar las métricas")
+        return
+      }
+
+      alert("¡Métricas guardadas exitosamente!")
+    } catch (err) {
+      alert("Error al guardar las métricas")
+    }
   }
 
   // Llama a Gemini automáticamente al llegar al paso 4
