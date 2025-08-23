@@ -10,6 +10,7 @@ import {
   validateUserData,
 } from "@/lib/nutrition-utils";
 import { HealthMetrics } from "@/types/nutrition";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,11 +35,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Calcular métricas de salud
-    const bmi = calculateBMI(userData.measurements.weight, userData.measurements.height);
-    const whtr = userData.measurements.waist 
+    const bmi = calculateBMI(
+      userData.measurements.weight,
+      userData.measurements.height
+    );
+    const whtr = userData.measurements.waist
       ? calculateWHtR(userData.measurements.waist, userData.measurements.height)
       : undefined;
-    
+
     const tdee = calculateTDEE(
       userData.measurements.weight,
       userData.measurements.height,
@@ -57,9 +61,23 @@ export async function POST(request: NextRequest) {
       userData.profile.activityLevel
     );
 
+    let user = await prisma.user.findFirst({
+      where: {
+        id: userData.id,
+      },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          id: userData.id,
+        },
+      });
+    }
+
     // Crear el objeto de métricas de salud completo
     const healthMetrics: HealthMetrics = {
-      id: userData.id || `metrics-${Date.now()}`,
+      id: user.id || `metrics-${Date.now()}`,
       userId: userData.userId || `user-${Date.now()}`,
       date: new Date(),
       profile: userData.profile,
