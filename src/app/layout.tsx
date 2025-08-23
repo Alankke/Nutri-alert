@@ -4,17 +4,18 @@ import "./globals.css"
 import { Navigation } from "@/components/navigation"
 import { ClerkProvider } from "@clerk/nextjs"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "NutriAlert - Salud Predictiva con Gamificación",
-  description: "Aplicación web de salud pública predictiva con gamificación para orientación preventiva nutricional",
-}
+  description:
+    "Aplicación web de salud pública predictiva con gamificación para orientación preventiva nutricional",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="es">
@@ -29,5 +30,5 @@ export default function RootLayout({
         </div>
       </body>
     </html>
-  )
+  );
 }
