@@ -5,13 +5,66 @@ import { RiskPill } from "@/components/ui/risk-pill"
 import { TrendingUp, TrendingDown, Minus, Zap, Target } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useUser } from "@clerk/nextjs"
+import { RiskLevel } from "@/types/nutrition"
+
+// Interfaces para los datos que vienen de la API
+interface NutritionPlanData {
+  id: string
+  createdAt: string
+  validUntil: string
+  goal: string
+  targetCalories: number
+  dailyMealPlans?: DailyMealPlanData[]
+}
+
+interface DailyMealPlanData {
+  day: string
+  meals: Record<string, MealData>
+  totalMacros: {
+    protein: number
+    carbs: number
+    fat: number
+  }
+  totalCalories: number
+}
+
+interface MealData {
+  name: string
+  description: string
+  calories: number
+  macros: {
+    protein: number
+    carbs: number
+    fat: number
+  }
+  ingredients: string[]
+  instructions: string
+  preparationTime: number
+}
+
+interface HealthMetricsData {
+  id: string
+  userId: string
+  date: string
+  bmi: number
+  bmiCategory: string
+  whtr?: number
+  tdee: number
+  targetCalories: number
+  goal: string
+  carbs: number
+  protein: number
+  fat: number
+  riskLevel: RiskLevel
+  healthScore: number
+}
 
 export default function OverviewPage() {
   const { user, isLoaded } = useUser()
 
   // Datos en tiempo real
-  const [nutritionPlans, setNutritionPlans] = useState<any[]>([])
-  const [healthMetrics, setHealthMetrics] = useState<any[]>([])
+  const [nutritionPlans, setNutritionPlans] = useState<NutritionPlanData[]>([])
+  const [healthMetrics, setHealthMetrics] = useState<HealthMetricsData[]>([])
 
   // Cargar planes nutricionales del usuario autenticado
   useEffect(() => {
@@ -315,11 +368,11 @@ export default function OverviewPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-8">
-              {nutritionPlans[0].dailyMealPlans.map((day: any, i: number) => (
+              {nutritionPlans[0].dailyMealPlans.map((day: DailyMealPlanData, i: number) => (
                 <div key={i} className="border-b pb-6 mb-6">
                   <h3 className="text-lg font-bold mb-2">{day.day}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(day.meals).map(([mealKey, meal]: [string, any]) => (
+                    {Object.entries(day.meals).map(([mealKey, meal]: [string, MealData]) => (
                       <div key={mealKey} className="p-4 border rounded-lg bg-gray-50">
                         <h4 className="font-semibold text-blue-800 mb-1 capitalize">{mealKey.replace(/([A-Z])/g, ' $1')}</h4>
                         <div className="font-bold text-gray-900">{meal.name}</div>

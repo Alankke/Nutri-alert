@@ -8,6 +8,7 @@ import {
 } from "@/types/nutrition";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { NutritionalPlan as PrismaNutritionalPlan } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -249,7 +250,7 @@ export async function GET() {
 
     // Transformar los datos de la base de datos al formato de la interfaz
     const transformedPlans: NutritionalPlan[] = nutritionalPlans.map(
-      (plan) => ({
+      (plan: PrismaNutritionalPlan) => ({
         userId: plan.userId,
         goal: plan.goal,
         targetCalories: plan.targetCalories,
