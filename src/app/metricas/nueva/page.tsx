@@ -1,32 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useUser } from "@clerk/nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Stepper } from "@/components/ui/stepper"
+import { ArrowLeft, ArrowRight, Save, Download } from "lucide-react"
 
-import { ArrowLeft, ArrowRight, Save } from "lucide-react"
-
-const steps = ["Perfil", "Medidas", "Hábitos"]
+const steps = ["Perfil", "Medidas", "Hábitos", "Recomendaciones de Géminis"]
 
 export default function NuevaMetricaPage() {
+  const { user, isLoaded } = useUser()
   const [currentStep, setCurrentStep] = useState(0)
+  const [loadingPlan, setLoadingPlan] = useState(false)
+  const [planGemini, setPlanGemini] = useState<any>(null)
+  const [planError, setPlanError] = useState<string | null>(null)
+
   const [formData, setFormData] = useState({
     // Paso 1: Perfil
     sexo: "",
     edad: "",
     objetivo: "",
     nivelActividad: "",
-    
+
     // Paso 2: Medidas
     peso: "",
     altura: "",
     cintura: "",
     cadera: "",
     cuello: "",
-    
+
     // Paso 3: Hábitos
     horasSueno: "",
     temporada: ""
@@ -37,15 +42,11 @@ export default function NuevaMetricaPage() {
   }
 
   const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
-    }
+    if (currentStep < steps.length - 1) setCurrentStep(s => s + 1)
   }
 
   const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
-    }
+    if (currentStep > 0) setCurrentStep(s => s - 1)
   }
 
   const handleSubmit = () => {
@@ -54,6 +55,15 @@ export default function NuevaMetricaPage() {
     alert("¡Métricas guardadas exitosamente!")
   }
 
+  // Llama a Gemini automáticamente al llegar al paso 4
+  useEffect(() => {
+    if (currentStep === 3 && !planGemini && !loadingPlan && !planError && isLoaded && user?.id) {
+      fetchGeminiPlan()
+    }
+    // eslint-disable-next-line
+  }, [currentStep, isLoaded, user])
+
+  // ===== PASO 1: Perfil =====
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -119,6 +129,7 @@ export default function NuevaMetricaPage() {
     </div>
   )
 
+  // ===== PASO 2: Medidas =====
   const renderStep2 = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -193,6 +204,7 @@ export default function NuevaMetricaPage() {
     </div>
   )
 
+  // ===== PASO 3: Hábitos =====
   const renderStep3 = () => (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -226,30 +238,168 @@ export default function NuevaMetricaPage() {
     </div>
   )
 
+  // ===== PASO 4: Recomendaciones de Géminis =====
+
+  const fetchGeminiPlan = async () => {
+    if (!user?.id) {
+      setPlanError("No se pudo obtener el usuario. Inicia sesión nuevamente.")
+      return
+    }
+    setLoadingPlan(true)
+    setPlanError(null)
+    setPlanGemini(null)
+    try {
+      // Transforma los datos del formulario al formato esperado por el backend
+      const payload = {
+        userId: user.id,
+        profile: {
+          biologicalSex: formData.sexo,
+          age: Number(formData.edad),
+          goal: formData.objetivo,
+          activityLevel: formData.nivelActividad,
+        },
+        measurements: {
+          weight: Number(formData.peso),
+          height: Number(formData.altura),
+          waist: formData.cintura ? Number(formData.cintura) : undefined,
+          hip: formData.cadera ? Number(formData.cadera) : undefined,
+          neck: formData.cuello ? Number(formData.cuello) : undefined,
+        },
+        lifestyle: {
+          sleepHours: formData.horasSueno ? Number(formData.horasSueno) : undefined,
+          season: formData.temporada,
+        },
+        targetCalories: 2000, // Puedes calcularlo o pedirlo al usuario
+      }
+
+      const res = await fetch("/api/nutrition-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || "Error al generar el plan")
+      }
+
+      const data = await res.json()
+      setPlanGemini(data)
+    } catch (err: any) {
+      setPlanError(err.message)
+    } finally {
+      setLoadingPlan(false)
+    }
+  }
+
+  const renderStep4 = () => {
+    if (loadingPlan) {
+      return <div className="text-center py-8">Generando plan personalizado con Gemini...</div>
+    }
+    if (planError) {
+      return <div className="text-center text-red-600 py-8">Error: {planError}</div>
+    }
+    if (!planGemini) {
+      return <div className="text-center py-8">Esperando respuesta de Gemini...</div>
+    }
+
+    // Renderiza el plan real de Gemini
+    return (
+      <div className="space-y-6">
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            Plan nutricional personalizado
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Este plan fue generado automáticamente por Gemini según tus datos.
+          </p>
+          <div>
+            <h4 className="font-medium text-gray-800 mb-2">Objetivo: {planGemini.goal}</h4>
+            <h4 className="font-medium text-gray-800 mb-2">Calorías objetivo: {planGemini.targetCalories}</h4>
+          </div>
+          <div>
+            <h4 className="font-medium text-gray-800 mb-2">Plan diario:</h4>
+            <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+              {planGemini.dailyMealPlans?.map((meal: any, i: number) => (
+                <li key={i}>{typeof meal === "string" ? meal : JSON.stringify(meal)}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-medium text-gray-800 mb-2">Recomendaciones:</h4>
+            <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+              {planGemini.recommendations?.general?.map((r: string, i: number) => <li key={`g${i}`}>{r}</li>)}
+              {planGemini.recommendations?.specific?.map((r: string, i: number) => <li key={`s${i}`}>{r}</li>)}
+              {planGemini.recommendations?.seasonal?.map((r: string, i: number) => <li key={`se${i}`}>{r}</li>)}
+            </ul>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button
+              onClick={() => {
+                const content =
+                  `Plan nutricional personalizado por Gemini\n\n` +
+                  `Objetivo: ${planGemini.goal}\n` +
+                  `Calorías objetivo: ${planGemini.targetCalories}\n\n` +
+                  `Plan diario:\n- ${planGemini.dailyMealPlans?.join("\n- ")}\n\n` +
+                  `Recomendaciones:\n- ${(planGemini.recommendations?.general || []).join("\n- ")}\n- ${(planGemini.recommendations?.specific || []).join("\n- ")}\n- ${(planGemini.recommendations?.seasonal || []).join("\n- ")}\n`
+                const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement("a")
+                a.href = url
+                a.download = "plan-nutricional-gemini.txt"
+                a.click()
+                URL.revokeObjectURL(url)
+              }}
+              className="inline-flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Descargar plan (TXT)
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const renderCurrentStep = () => {
     switch (currentStep) {
-      case 0:
-        return renderStep1()
-      case 1:
-        return renderStep2()
-      case 2:
-        return renderStep3()
-      default:
-        return null
+      case 0: return renderStep1()
+      case 1: return renderStep2()
+      case 2: return renderStep3()
+      case 3: return renderStep4()
+      default: return null
     }
   }
 
   const canProceed = () => {
     switch (currentStep) {
       case 0:
-        return formData.sexo && formData.edad && formData.objetivo && formData.nivelActividad
+        return Boolean(formData.sexo && formData.edad && formData.objetivo && formData.nivelActividad)
       case 1:
-        return formData.peso && formData.altura
+        return Boolean(formData.peso && formData.altura)
       case 2:
-        return formData.temporada
+        return Boolean(formData.temporada)
+      case 3:
+        return true // En “Géminis” no exigimos más campos
       default:
         return false
     }
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="flex justify-center items-center min-h-[40vh]">
+        <span className="text-gray-600">Cargando usuario...</span>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center min-h-[40vh]">
+        <span className="text-red-600">Debes iniciar sesión para registrar tus métricas.</span>
+      </div>
+    )
   }
 
   return (

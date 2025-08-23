@@ -195,7 +195,7 @@ export default function OverviewPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            {results.advice.map((advice, index) => (
+            {results.advice.map((advice: string, index: number) => (
               <Badge key={index} variant="outline" className="text-sm">
                 {advice}
               </Badge>

@@ -12,7 +12,7 @@ export default function SignInPage() {
     <Card>
       <CardHeader>
         <CardTitle>
-          <h4 className="text-2xl text-center font-bold">Iniciar Sesion</h4>
+          Iniciar Sesion
         </CardTitle>
         <CardDescription className="text-center">
           Inserta tus credenciales para acceder a tu panel

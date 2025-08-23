@@ -12,7 +12,7 @@ export default function SignUpPage() {
     <Card>
       <CardHeader>
         <CardTitle>
-          <h4 className="text-2xl text-center font-bold">Crea tu cuenta</h4>
+        Crea tu cuenta
         </CardTitle>
         <CardDescription className="text-center">
           Completa tus datos para acceder a la aplicación

@@ -1,18 +1,44 @@
+"use client"
+
 import Link from "next/link"
+import { useUser } from "@clerk/nextjs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Activity, BarChart3, Plus, Target, Trophy, Users } from "lucide-react"
 
 export default function HomePage() {
+  const { isLoaded, isSignedIn } = useUser()
+
+  if (!isLoaded) {
+    // Mientras Clerk carga el estado del usuario
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-600">Cargando...</p>
+      </div>
+    )
+  }
+
+  if (!isSignedIn) {
+    // Usuario no autenticado → redirigir o mostrar login
+    return (
+      <div className="flex flex-col items-center justify-center h-screen space-y-4">
+        <h2 className="text-xl font-semibold text-gray-800">Acceso restringido</h2>
+        <p className="text-gray-600">Por favor inicia sesión para continuar.</p>
+        <Link href="/sign-in">
+          <Button>Iniciar sesión</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // Usuario autenticado → mostrar página normal
   return (
     <div className="space-y-8">
       {/* Hero Section */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-gray-900">
-          Bienvenido a NutriAlert
-        </h1>
+        <h1 className="text-4xl font-bold text-gray-900">Bienvenido a NutriAlert</h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Tu compañero de salud predictiva con gamificación. Monitorea tu estado nutricional, 
+          Tu compañero de salud predictiva con gamificación. Monitorea tu estado nutricional,
           recibe consejos personalizados y mantén tu motivación con nuestro sistema de recompensas.
         </p>
       </div>
@@ -137,7 +163,7 @@ export default function HomePage() {
           <div>
             <h3 className="font-semibold text-blue-900 mb-2">Importante</h3>
             <p className="text-blue-800 text-sm">
-              NutriAlert es una herramienta de orientación preventiva y no realiza diagnósticos médicos. 
+              NutriAlert es una herramienta de orientación preventiva y no realiza diagnósticos médicos.
               Siempre consulta con un profesional de la salud para obtener asesoramiento médico personalizado.
             </p>
           </div>
