@@ -391,8 +391,50 @@ export default function NuevaMetricaPage() {
     setLoadingPlan(true)
     setPlanError(null)
     setPlanGemini(null)
+    
     try {
-      // Usa los nombres en inglés, igual que en formData
+      // Calcular las métricas primero (igual que en handleSubmit)
+      const weight = Number(formData.weight)
+      const height = Number(formData.height)
+      const age = Number(formData.age)
+
+      // Calcular BMR usando fórmula Mifflin-St Jeor
+      let bmr
+      if (formData.biologicalSex === "male") {
+        bmr = 10 * weight + 6.25 * height - 5 * age + 5
+      } else {
+        bmr = 10 * weight + 6.25 * height - 5 * age - 161
+      }
+
+      // Multiplicadores de actividad física
+      const activityMultipliers: Record<string, number> = {
+        sedentary: 1.2,
+        light: 1.375,
+        moderate: 1.55,
+        high: 1.725
+      }
+
+      // Calcular TDEE
+      const activityLevel = formData.activityLevel as keyof typeof activityMultipliers
+      const multiplier = activityMultipliers[activityLevel] || 1.2
+      const tdee = Math.round(bmr * multiplier)
+
+      // Calcular calorías objetivo según el objetivo
+      let targetCalories
+      switch (formData.goal) {
+        case "lose":
+          targetCalories = Math.round(tdee - 500)
+          break
+        case "gain":
+          targetCalories = Math.round(tdee + 500)
+          break
+        case "maintain":
+        default:
+          targetCalories = tdee
+          break
+      }
+
+      // Preparar el payload con las calorías calculadas
       const payload = {
         userId: user.id,
         profile: {
@@ -402,8 +444,8 @@ export default function NuevaMetricaPage() {
           activityLevel: formData.activityLevel,
         },
         measurements: {
-          weight: Number(formData.weight),
-          height: Number(formData.height),
+          weight: weight,
+          height: height,
           waist: formData.waist ? Number(formData.waist) : undefined,
           hip: formData.hip ? Number(formData.hip) : undefined,
           neck: formData.neck ? Number(formData.neck) : undefined,
@@ -412,7 +454,7 @@ export default function NuevaMetricaPage() {
           sleepHours: formData.sleepHours ? Number(formData.sleepHours) : undefined,
           season: formData.season,
         },
-        targetCalories: 2000,
+        targetCalories: targetCalories, // Usar calorías calculadas, no hardcodeadas
       }
 
       const res = await fetch("/api/nutrition-plan", {
@@ -427,7 +469,7 @@ export default function NuevaMetricaPage() {
       }
 
       const data = await res.json()
-      setPlanGemini(data)
+      setPlanGemini(data.data) // Usar data.data ya que la API devuelve { success, message, data }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
       setPlanError(errorMessage)
@@ -438,68 +480,199 @@ export default function NuevaMetricaPage() {
 
   const renderStep4 = () => {
     if (loadingPlan) {
-      return <div className="text-center py-8">Generando plan personalizado con Gemini...</div>
+      return (
+        <div className="text-center py-12">
+          <div className="inline-flex items-center gap-3 px-6 py-3 bg-blue-50 rounded-lg">
+            <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+            <span className="text-blue-700 font-medium">Generando plan personalizado con Gemini...</span>
+          </div>
+        </div>
+      )
     }
+    
     if (planError) {
-      return <div className="text-center text-red-600 py-8">Error: {planError}</div>
+      return (
+        <div className="text-center py-12">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="text-red-600 font-medium mb-2">Error al generar el plan</div>
+            <p className="text-red-700">{planError}</p>
+          </div>
+        </div>
+      )
     }
+    
     if (!planGemini) {
-      return <div className="text-center py-8">Esperando respuesta de Gemini...</div>
+      return (
+        <div className="text-center py-12">
+          <div className="bg-gray-50 rounded-lg p-6">
+            <span className="text-gray-600">Preparando tu plan nutricional personalizado...</span>
+          </div>
+        </div>
+      )
     }
 
-    // Renderiza el plan real de Gemini
+    // Función para formatear el objetivo
+    const formatGoal = (goal: string) => {
+      const goalMap = {
+        lose: "Pérdida de peso",
+        maintain: "Mantener peso",
+        gain: "Ganancia de peso"
+      }
+      return goalMap[goal as keyof typeof goalMap] || goal
+    }
+
+    // Función para renderizar un meal plan de forma estructurada
+    const renderMealPlan = (meal: DailyMealPlan, index: number) => {
+      if (typeof meal === "string") {
+        return (
+          <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <p className="text-gray-700">{meal}</p>
+          </div>
+        )
+      }
+      
+      if (typeof meal === "object" && meal !== null) {
+        return (
+          <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            {Object.entries(meal).map(([key, value], idx) => (
+              <div key={idx} className="mb-2 last:mb-0">
+                <span className="font-semibold text-gray-800 capitalize">{key}:</span>
+                <span className="ml-2 text-gray-700">{String(value)}</span>
+              </div>
+            ))}
+          </div>
+        )
+      }
+      
+      return null
+    }
+
     return (
-      <div className="space-y-6">
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            Plan nutricional personalizado
+      <div className="space-y-8">
+        {/* Header del plan */}
+        <div className="text-center bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            Tu Plan Nutricional Personalizado
           </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Este plan fue generado automáticamente por Gemini según tus datos.
+          <p className="text-gray-600 mb-4">
+            Generado específicamente para ti con inteligencia artificial
           </p>
-          <div>
-            <h4 className="font-medium text-gray-800 mb-2">Objetivo: {planGemini.goal}</h4>
-            <h4 className="font-medium text-gray-800 mb-2">Calorías objetivo: {planGemini.targetCalories}</h4>
+          <div className="flex justify-center gap-8">
+            <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+              <div className="text-sm text-gray-500">Objetivo</div>
+              <div className="font-semibold text-gray-900">{formatGoal(planGemini.goal)}</div>
+            </div>
+            <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+              <div className="text-sm text-gray-500">Calorías diarias</div>
+              <div className="font-semibold text-gray-900">{planGemini.targetCalories} cal</div>
+            </div>
           </div>
-          <div>
-            <h4 className="font-medium text-gray-800 mb-2">Plan diario:</h4>
-            <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-              {planGemini.dailyMealPlans?.map((meal: DailyMealPlan, i: number) => (
-                <li key={i}>{typeof meal === "string" ? meal : JSON.stringify(meal)}</li>
-              ))}
-            </ul>
+        </div>
+
+        {/* Plan de comidas */}
+        {planGemini.dailyMealPlans && planGemini.dailyMealPlans.length > 0 && (
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              Plan de Alimentación
+            </h4>
+            <div className="grid gap-4">
+              {planGemini.dailyMealPlans.map((meal, index) => renderMealPlan(meal, index))}
+            </div>
           </div>
-          <div>
-            <h4 className="font-medium text-gray-800 mb-2">Recomendaciones:</h4>
-            <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-              {planGemini.recommendations?.general?.map((r: string, i: number) => <li key={`g${i}`}>{r}</li>)}
-              {planGemini.recommendations?.specific?.map((r: string, i: number) => <li key={`s${i}`}>{r}</li>)}
-              {planGemini.recommendations?.seasonal?.map((r: string, i: number) => <li key={`se${i}`}>{r}</li>)}
-            </ul>
-          </div>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button
-              onClick={() => {
-                const content =
-                  `Plan nutricional personalizado por Gemini\n\n` +
-                  `Objetivo: ${planGemini.goal}\n` +
-                  `Calorías objetivo: ${planGemini.targetCalories}\n\n` +
-                  `Plan diario:\n- ${planGemini.dailyMealPlans?.join("\n- ")}\n\n` +
-                  `Recomendaciones:\n- ${(planGemini.recommendations?.general || []).join("\n- ")}\n- ${(planGemini.recommendations?.specific || []).join("\n- ")}\n- ${(planGemini.recommendations?.seasonal || []).join("\n- ")}\n`
-                const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement("a")
-                a.href = url
-                a.download = "plan-nutricional-gemini.txt"
-                a.click()
-                URL.revokeObjectURL(url)
-              }}
-              className="inline-flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Descargar plan (TXT)
-            </Button>
-          </div>
+        )}
+
+        {/* Recomendaciones */}
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+          {/* Recomendaciones Generales */}
+          {planGemini.recommendations?.general && planGemini.recommendations.general.length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-blue-200">
+              <h4 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                Consejos Generales
+              </h4>
+              <ul className="space-y-3">
+                {planGemini.recommendations.general.map((rec, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 text-sm leading-relaxed">{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Recomendaciones Específicas */}
+          {planGemini.recommendations?.specific && planGemini.recommendations.specific.length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-200">
+              <h4 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                Recomendaciones Personalizadas
+              </h4>
+              <ul className="space-y-3">
+                {planGemini.recommendations.specific.map((rec, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 text-sm leading-relaxed">{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Recomendaciones de Temporada */}
+          {planGemini.recommendations?.seasonal && planGemini.recommendations.seasonal.length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-200">
+              <h4 className="text-lg font-semibold text-orange-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                Consejos Estacionales
+              </h4>
+              <ul className="space-y-3">
+                {planGemini.recommendations.seasonal.map((rec, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 text-sm leading-relaxed">{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Botón de descarga mejorado */}
+        <div className="text-center pt-6">
+          <Button
+            onClick={() => {
+              const content =
+                `=== PLAN NUTRICIONAL PERSONALIZADO ===\n\n` +
+                `📋 RESUMEN\n` +
+                `Objetivo: ${formatGoal(planGemini.goal)}\n` +
+                `Calorías objetivo: ${planGemini.targetCalories} cal/día\n\n` +
+                `🍽️ PLAN DE ALIMENTACIÓN\n` +
+                `${planGemini.dailyMealPlans?.map((meal, i) => 
+                  `${i + 1}. ${typeof meal === 'string' ? meal : JSON.stringify(meal, null, 2)}`
+                ).join('\n') || 'No disponible'}\n\n` +
+                `💡 RECOMENDACIONES GENERALES\n` +
+                `${(planGemini.recommendations?.general || []).map((r, i) => `• ${r}`).join('\n')}\n\n` +
+                `🎯 RECOMENDACIONES PERSONALIZADAS\n` +
+                `${(planGemini.recommendations?.specific || []).map((r, i) => `• ${r}`).join('\n')}\n\n` +
+                `🌤️ CONSEJOS ESTACIONALES\n` +
+                `${(planGemini.recommendations?.seasonal || []).map((r, i) => `• ${r}`).join('\n')}\n\n` +
+                `Generado el: ${new Date().toLocaleDateString('es-ES')}`
+              
+              const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement("a")
+              a.href = url
+              a.download = `plan-nutricional-${new Date().toISOString().split('T')[0]}.txt`
+              a.click()
+              URL.revokeObjectURL(url)
+            }}
+            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            <Download className="w-5 h-5" />
+            Descargar Plan Completo
+          </Button>
         </div>
       </div>
     )
