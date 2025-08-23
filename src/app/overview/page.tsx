@@ -62,7 +62,6 @@ interface HealthMetricsData {
 export default function OverviewPage() {
   const { user, isLoaded } = useUser()
 
-  // Datos en tiempo real
   const [nutritionPlans, setNutritionPlans] = useState<NutritionPlanData[]>([])
   const [healthMetrics, setHealthMetrics] = useState<HealthMetricsData[]>([])
 
@@ -71,7 +70,10 @@ export default function OverviewPage() {
     if (!isLoaded || !user?.id) return
     async function fetchPlans() {
       const res = await fetch(`/api/nutrition-plan`)
-      if (res.ok) setNutritionPlans(await res.json())
+      if (res.ok) {
+        const json = await res.json()
+        setNutritionPlans(json.data || [])
+      }
     }
     fetchPlans()
   }, [isLoaded, user])

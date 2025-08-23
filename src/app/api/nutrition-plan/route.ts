@@ -124,14 +124,14 @@ export async function POST(request: NextRequest) {
 
     let user = await prisma.user.findFirst({
       where: {
-        id: userData.id,
+        id: userData.userId,
       },
     });
 
     if (!user) {
       user = await prisma.user.create({
         data: {
-          id: userData.id,
+          id: userData.userId,
         },
       });
     }

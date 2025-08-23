@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Enums según schema.prisma
+const BiologicalSex = ["male", "female"];
+const ActivityLevel = ["sedentary", "light", "moderate", "high"];
+const WeightGoal = ["lose", "maintain", "gain"];
+const RiskLevel = ["low", "moderate", "high"];
+const Season = ["summer", "winter"];
+
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 
-    // Validar campos requeridos
     const {
       userId,
       biologicalSex,
@@ -30,27 +36,41 @@ export async function POST(request: NextRequest) {
       healthScore,
     } = data;
 
+    // Validación estricta según schema.prisma
     if (
       !userId ||
-      !biologicalSex ||
+      !BiologicalSex.includes(biologicalSex) ||
       typeof age !== "number" ||
-      !goal ||
-      !activityLevel ||
+      !WeightGoal.includes(goal) ||
+      !ActivityLevel.includes(activityLevel) ||
       typeof weight !== "number" ||
       typeof height !== "number" ||
       typeof sleepHours !== "number" ||
-      !season ||
+      !Season.includes(season) ||
       typeof bmi !== "number" ||
+      (typeof whtr !== "number" && typeof whtr !== "undefined") ||
       typeof tdee !== "number" ||
       typeof targetCalories !== "number" ||
       typeof carbs !== "number" ||
       typeof protein !== "number" ||
       typeof fat !== "number" ||
-      !riskLevel ||
-      typeof healthScore !== "number"
+      !RiskLevel.includes(riskLevel) ||
+      !Number.isInteger(healthScore)
     ) {
       return NextResponse.json(
         { error: "Datos incompletos o inválidos" },
+        { status: 400 }
+      );
+    }
+
+    // Opcionales: waist, hip, neck pueden ser undefined o number
+    if (
+      (typeof waist !== "undefined" && typeof waist !== "number") ||
+      (typeof hip !== "undefined" && typeof hip !== "number") ||
+      (typeof neck !== "undefined" && typeof neck !== "number")
+    ) {
+      return NextResponse.json(
+        { error: "Medidas opcionales inválidas" },
         { status: 400 }
       );
     }
@@ -105,7 +125,6 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Puedes filtrar por usuario si recibes un userId por query param
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
@@ -114,7 +133,7 @@ export async function GET(request: NextRequest) {
     const metrics = await prisma.healthMetrics.findMany({
       where,
       orderBy: { date: "desc" },
-      take: 20, // Limita a los últimos 20 registros
+      take: 20,
     });
 
     return NextResponse.json(metrics);
