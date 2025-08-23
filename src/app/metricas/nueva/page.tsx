@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Stepper } from "@/components/ui/stepper"
 import { ArrowLeft, ArrowRight, Save, Download } from "lucide-react"
+import { NutritionalPlan, DailyMealPlan } from "@/types/nutrition"
 
 const steps = ["Perfil", "Medidas", "Hábitos", "Recomendaciones de Géminis"]
 
@@ -15,7 +16,7 @@ export default function NuevaMetricaPage() {
   const { user, isLoaded } = useUser()
   const [currentStep, setCurrentStep] = useState(0)
   const [loadingPlan, setLoadingPlan] = useState(false)
-  const [planGemini, setPlanGemini] = useState<any>(null)
+  const [planGemini, setPlanGemini] = useState<NutritionalPlan | null>(null)
   const [planError, setPlanError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
@@ -346,8 +347,9 @@ export default function NuevaMetricaPage() {
 
       const data = await res.json()
       setPlanGemini(data)
-    } catch (err: any) {
-      setPlanError(err.message)
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
+      setPlanError(errorMessage)
     } finally {
       setLoadingPlan(false)
     }
@@ -381,7 +383,7 @@ export default function NuevaMetricaPage() {
           <div>
             <h4 className="font-medium text-gray-800 mb-2">Plan diario:</h4>
             <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-              {planGemini.dailyMealPlans?.map((meal: any, i: number) => (
+              {planGemini.dailyMealPlans?.map((meal: DailyMealPlan, i: number) => (
                 <li key={i}>{typeof meal === "string" ? meal : JSON.stringify(meal)}</li>
               ))}
             </ul>
