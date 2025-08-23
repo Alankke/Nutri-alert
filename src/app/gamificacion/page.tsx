@@ -45,7 +45,7 @@ export default function GamificacionPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-center space-x-2 mb-2">
               <Star className="w-6 h-6 text-yellow-500" />
-              <span className="text-2xl font-bold text-gray-900">{data.puntos}</span>
+              <span className="text-2xl font-bold text-gray-900">{data.points}</span>
             </div>
             <p className="text-sm text-gray-600">Puntos Totales</p>
           </CardContent>
@@ -55,7 +55,7 @@ export default function GamificacionPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-center space-x-2 mb-2">
               <Flame className="w-6 h-6 text-orange-500" />
-              <span className="text-2xl font-bold text-gray-900">{data.racha}</span>
+              <span className="text-2xl font-bold text-gray-900">{data.streak}</span>
             </div>
             <p className="text-sm text-gray-600">Días de Racha</p>
           </CardContent>
@@ -66,7 +66,7 @@ export default function GamificacionPage() {
             <div className="flex items-center justify-center space-x-2 mb-2">
               <Target className="w-6 h-6 text-green-500" />
               <span className="text-2xl font-bold text-gray-900">
-                {data.misiones.filter(m => m.completada).length}/{data.misiones.length}
+                {data.missions.filter(m => m.completed).length}/{data.missions.length}
               </span>
             </div>
             <p className="text-sm text-gray-600">Misiones Completadas</p>
@@ -87,28 +87,28 @@ export default function GamificacionPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {data.misiones.map((mision) => (
+            {data.missions.map((mission) => (
               <div
-                key={mision.id}
+                key={mission.id}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-center space-x-3">
-                  {mision.completada ? (
+                  {mission.completed ? (
                     <CheckCircle className="w-5 h-5 text-green-600" />
                   ) : (
                     <Circle className="w-5 h-5 text-gray-400" />
                   )}
                   <div>
-                    <div className="font-medium text-gray-900">{mision.nombre}</div>
-                    <div className="text-sm text-gray-600">{mision.descripcion}</div>
+                    <div className="font-medium text-gray-900">{mission.name}</div>
+                    <div className="text-sm text-gray-600">{mission.description}</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Badge variant="outline" className="text-xs">
-                    {mision.tipo}
+                    {mission.type}
                   </Badge>
                   <div className="text-sm font-medium text-gray-900">
-                    +{mision.puntosRecompensa} pts
+                    +{mission.rewardPoints} pts
                   </div>
                 </div>
               </div>
@@ -134,20 +134,20 @@ export default function GamificacionPage() {
               <div
                 key={badge.id}
                 className={`p-4 rounded-lg border-2 transition-all ${
-                  badge.desbloqueado
+                  badge.unlocked
                     ? "border-green-200 bg-green-50"
                     : "border-gray-200 bg-gray-50 opacity-60"
                 }`}
               >
                 <div className="text-center">
-                  <div className="text-3xl mb-2">{badge.icono}</div>
+                  <div className="text-3xl mb-2">{badge.icon}</div>
                   <div className="font-medium text-gray-900 mb-1">
-                    {badge.nombre}
+                    {badge.name}
                   </div>
                   <div className="text-sm text-gray-600 mb-2">
-                    {badge.descripcion}
+                    {badge.description}
                   </div>
-                  {badge.desbloqueado ? (
+                  {badge.unlocked ? (
                     <Badge variant="success" className="text-xs">
                       Desbloqueado
                     </Badge>
@@ -156,9 +156,9 @@ export default function GamificacionPage() {
                       Bloqueado
                     </Badge>
                   )}
-                  {badge.fechaDesbloqueo && (
+                  {badge.unlockDate && (
                     <div className="text-xs text-gray-500 mt-2">
-                      {badge.fechaDesbloqueo}
+                      {badge.unlockDate}
                     </div>
                   )}
                 </div>

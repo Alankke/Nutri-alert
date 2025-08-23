@@ -1,8 +1,12 @@
+// Basic types
 export type BiologicalSex = "male" | "female";
-export type ActivityLevel = "sedentary" | "light" | "moderate" | "high";
+export type ActivityLevel = "sedentary" | "light" | "moderate" | "high" | "very_high";
 export type WeightGoal = "lose" | "maintain" | "gain";
 export type RiskLevel = "low" | "moderate" | "high";
+export type Season = "summer" | "winter";
+export type MissionType = "daily" | "weekly" | "monthly";
 
+// User Profile and Metrics
 export interface UserProfile {
   biologicalSex: BiologicalSex;
   age: number;
@@ -19,10 +23,94 @@ export interface BodyMeasurements {
 }
 
 export interface LifestyleData {
-  sleepHours: number;
-  season: "summer" | "winter";
+  sleepHours?: number;
+  season: Season;
 }
 
+export interface UserMetrics {
+  id: string;
+  name: string;
+  age: number;
+  biologicalSex: BiologicalSex;
+  goal: WeightGoal;
+  activityLevel: ActivityLevel;
+  weight: number; // kg
+  height: number; // cm
+  waist?: number; // cm
+  hip?: number; // cm
+  neck?: number; // cm
+  sleepHours?: number;
+  season: Season;
+}
+
+// Health Results and Calculations
+export interface HealthResults {
+  bmi: number;
+  bmiCategory: "underweight" | "normal" | "overweight" | "obese";
+  whtr?: number; // Waist-to-height ratio
+  tdee: number; // Total Daily Energy Expenditure
+  targetCalories: number;
+  macros: {
+    carbs: number; // grams
+    protein: number; // grams
+    fat: number; // grams
+  };
+  riskLevel: RiskLevel;
+  advice: string[];
+}
+
+// Gamification System
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  unlockDate?: string;
+}
+
+export interface Mission {
+  id: string;
+  name: string;
+  description: string;
+  completed: boolean;
+  rewardPoints: number;
+  type: MissionType;
+}
+
+export interface GamificationData {
+  healthScore: number; // 0-100
+  points: number;
+  streak: number;
+  badges: Badge[];
+  missions: Mission[];
+}
+
+// Health Progress Tracking
+export interface HealthProgress {
+  date: string;
+  weight: number;
+  waist?: number;
+  healthScore: number;
+  bmi: number;
+}
+
+// Patient Data for Medical Dashboard
+export interface PatientData {
+  id: string;
+  name: string;
+  age: number;
+  bmi: number;
+  whtr: number;
+  healthScore: number;
+  riskLevel: RiskLevel;
+  lastUpdate: string;
+  latestMetrics: UserMetrics;
+  progress: HealthProgress[];
+  generatedAdvice: string[];
+}
+
+// Legacy Health Metrics (keeping for backward compatibility)
 export interface HealthMetrics {
   id: string;
   userId: string;
@@ -44,19 +132,7 @@ export interface HealthMetrics {
   healthScore: number; // 0-100
 }
 
-export interface GamificationData {
-  healthScore: number;
-  points: number;
-  streak: number;
-  badges: string[];
-  missions: {
-    recordMetrics: boolean;
-    sleep7Hours: boolean;
-    reachCalorieGoal: boolean;
-  };
-}
-
-// Nuevos tipos para el plan nutricional
+// Meal Planning System
 export interface Meal {
   name: string;
   description: string;
@@ -142,10 +218,40 @@ export const DEMO_GAMIFICATION: GamificationData = {
   healthScore: 73,
   points: 1250,
   streak: 5,
-  badges: ["first-metric", "healthy-week"],
-  missions: {
-    recordMetrics: true,
-    sleep7Hours: false,
-    reachCalorieGoal: true,
-  },
+  badges: [
+    {
+      id: "1",
+      name: "First Step",
+      description: "Completed your first assessment",
+      icon: "🎯",
+      unlocked: true,
+      unlockDate: "2024-01-15"
+    },
+    {
+      id: "2",
+      name: "Consistent",
+      description: "7 consecutive days recording metrics",
+      icon: "🔥",
+      unlocked: true,
+      unlockDate: "2024-02-01"
+    }
+  ],
+  missions: [
+    {
+      id: "1",
+      name: "Record Metrics",
+      description: "Update your body measurements",
+      completed: true,
+      rewardPoints: 50,
+      type: "daily"
+    },
+    {
+      id: "2",
+      name: "Sleep ≥7h",
+      description: "Rest at least 7 hours tonight",
+      completed: false,
+      rewardPoints: 30,
+      type: "daily"
+    }
+  ],
 };
