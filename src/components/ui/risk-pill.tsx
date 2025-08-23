@@ -1,25 +1,25 @@
 import { cn } from "@/lib/utils"
 
 interface RiskPillProps {
-  risk: "verde" | "amarillo" | "rojo"
+  risk: "low" | "moderate" | "high"
   className?: string
 }
 
 export function RiskPill({ risk, className }: RiskPillProps) {
   const riskConfig = {
-    verde: {
+    low: {
       bg: "bg-green-100",
       text: "text-green-800",
       border: "border-green-200",
       label: "Bajo Riesgo"
     },
-    amarillo: {
+    moderate: {
       bg: "bg-yellow-100",
       text: "text-yellow-800",
       border: "border-yellow-200",
       label: "Riesgo Moderado"
     },
-    rojo: {
+    high: {
       bg: "bg-red-100",
       text: "text-red-800",
       border: "border-red-200",
@@ -41,9 +41,9 @@ export function RiskPill({ risk, className }: RiskPillProps) {
     >
       <div className={cn(
         "w-2 h-2 rounded-full mr-2",
-        risk === "verde" && "bg-green-500",
-        risk === "amarillo" && "bg-yellow-500",
-        risk === "rojo" && "bg-red-500"
+        risk === "low" && "bg-green-500",
+        risk === "moderate" && "bg-yellow-500",
+        risk === "high" && "bg-red-500"
       )} />
       {config.label}
     </div>

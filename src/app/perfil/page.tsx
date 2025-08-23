@@ -11,13 +11,13 @@ export default function PerfilPage() {
 
   // Datos simulados del usuario
   const userProfile = {
-    nombre: "Luis Herrera",
+    name: "Luis Herrera",
     email: "luis.herrera@email.com",
-    fechaRegistro: "15 de Enero, 2024",
-    ultimaActualizacion: "Hoy",
-    objetivo: "Bajar de peso",
-    nivelActividad: "Sedentario",
-    temporada: "Invierno"
+    registrationDate: "15 de Enero, 2024",
+    lastUpdate: "Hoy",
+    goal: "Bajar de peso",
+    activityLevel: "Sedentario",
+    season: "Invierno"
   }
 
   return (
@@ -48,7 +48,7 @@ export default function PerfilPage() {
               <div>
                 <label className="text-sm font-medium text-gray-700">Nombre</label>
                 <div className="mt-1 p-3 bg-gray-50 rounded-md border">
-                  {userProfile.nombre}
+                  {userProfile.name}
                 </div>
               </div>
               
@@ -63,7 +63,7 @@ export default function PerfilPage() {
                 <label className="text-sm font-medium text-gray-700">Fecha de Registro</label>
                 <div className="mt-1 p-3 bg-gray-50 rounded-md border flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
-                  <span>{userProfile.fechaRegistro}</span>
+                  <span>{userProfile.registrationDate}</span>
                 </div>
               </div>
             </div>
@@ -73,7 +73,7 @@ export default function PerfilPage() {
                 <label className="text-sm font-medium text-gray-700">Objetivo Principal</label>
                 <div className="mt-1 p-3 bg-gray-50 rounded-md border flex items-center space-x-2">
                   <Target className="w-4 h-4 text-gray-500" />
-                  <span>{userProfile.objetivo}</span>
+                  <span>{userProfile.goal}</span>
                 </div>
               </div>
 
@@ -81,14 +81,14 @@ export default function PerfilPage() {
                 <label className="text-sm font-medium text-gray-700">Nivel de Actividad</label>
                 <div className="mt-1 p-3 bg-gray-50 rounded-md border flex items-center space-x-2">
                   <Activity className="w-4 h-4 text-gray-500" />
-                  <span>{userProfile.nivelActividad}</span>
+                  <span>{userProfile.activityLevel}</span>
                 </div>
               </div>
 
               <div>
                 <label className="text-sm font-medium text-gray-700">Temporada</label>
                 <div className="mt-1 p-3 bg-gray-50 rounded-md border">
-                  {userProfile.temporada}
+                  {userProfile.season}
                 </div>
               </div>
             </div>
@@ -118,17 +118,17 @@ export default function PerfilPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-gray-900 mb-2">
-                {healthResults.imc.toFixed(1)}
+                {healthResults.bmi.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600">IMC Actual</div>
               <Badge variant="outline" className="mt-2">
-                {healthResults.categoriaIMC.replace('_', ' ')}
+                {healthResults.bmiCategory.replace('_', ' ')}
               </Badge>
             </div>
 
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-gray-900 mb-2">
-                {healthResults.caloriasObjetivo}
+                {healthResults.targetCalories}
               </div>
               <div className="text-sm text-gray-600">Calorías Objetivo</div>
               <div className="text-xs text-gray-500 mt-1">
@@ -142,7 +142,7 @@ export default function PerfilPage() {
               </div>
               <div className="text-sm text-gray-600">Health Score</div>
               <div className="text-xs text-gray-500 mt-1">
-                {gamificationData.puntos} puntos
+                {gamificationData.points} puntos
               </div>
             </div>
           </div>
@@ -198,28 +198,28 @@ export default function PerfilPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600 mb-2">
-                {gamificationData.racha}
+                {gamificationData.streak}
               </div>
               <div className="text-sm text-blue-700">Días de Racha</div>
             </div>
 
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600 mb-2">
-                {gamificationData.badges.filter(b => b.desbloqueado).length}
+                {gamificationData.badges.filter(b => b.unlocked).length}
               </div>
               <div className="text-sm text-green-700">Badges Desbloqueados</div>
             </div>
 
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <div className="text-2xl font-bold text-purple-600 mb-2">
-                {gamificationData.misiones.filter(m => m.completada).length}
+                {gamificationData.missions.filter(m => m.completed).length}
               </div>
               <div className="text-sm text-purple-700">Misiones Completadas</div>
             </div>
 
             <div className="text-center p-4 bg-orange-50 rounded-lg">
               <div className="text-2xl font-bold text-orange-600 mb-2">
-                {userProfile.ultimaActualizacion}
+                {userProfile.lastUpdate}
               </div>
               <div className="text-sm text-orange-700">Última Actualización</div>
             </div>

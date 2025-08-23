@@ -72,7 +72,7 @@ export default function ProgresoPage() {
         <Card className="text-center">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-gray-900 mb-2">
-              {progress[progress.length - 1]?.peso.toFixed(1)} kg
+              {progress[progress.length - 1]?.weight.toFixed(1)} kg
             </div>
             <p className="text-sm text-gray-600">Peso Actual</p>
           </CardContent>
@@ -81,7 +81,7 @@ export default function ProgresoPage() {
         <Card className="text-center">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-gray-900 mb-2">
-              {progress[progress.length - 1]?.imc.toFixed(1)}
+              {progress[progress.length - 1]?.bmi.toFixed(1)}
             </div>
             <p className="text-sm text-gray-600">IMC Actual</p>
           </CardContent>
@@ -113,12 +113,12 @@ export default function ProgresoPage() {
           <CardContent>
             <div className="space-y-4">
               {createSparkline(
-                progress.map(p => p.peso),
+                progress.map(p => p.weight),
                 "bg-blue-500"
               )}
               <div className="flex justify-between text-sm text-gray-600">
-                <span>Inicio: {progress[0]?.peso} kg</span>
-                <span>Actual: {progress[progress.length - 1]?.peso} kg</span>
+                <span>Inicio: {progress[0]?.weight} kg</span>
+                <span>Actual: {progress[progress.length - 1]?.weight} kg</span>
               </div>
             </div>
           </CardContent>
@@ -165,20 +165,20 @@ export default function ProgresoPage() {
           <div className="space-y-4">
             {progress.map((record, index) => {
               const previous = index > 0 ? progress[index - 1] : null
-              const pesoChange = previous ? record.peso - previous.peso : 0
-              const imcChange = previous ? record.imc - previous.imc : 0
+              const weightChange = previous ? record.weight - previous.weight : 0
+              const bmiChange = previous ? record.bmi - previous.bmi : 0
               const scoreChange = previous ? record.healthScore - previous.healthScore : 0
 
               return (
                 <div
-                  key={record.fecha}
+                  key={record.date}
                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-4 h-4 text-gray-500" />
                       <span className="font-medium text-gray-900">
-                        {formatDate(record.fecha)}
+                        {formatDate(record.date)}
                       </span>
                     </div>
                     <div className="text-sm text-gray-500">
@@ -190,13 +190,13 @@ export default function ProgresoPage() {
                     {/* Peso */}
                     <div className="text-center">
                       <div className="text-lg font-bold text-gray-900">
-                        {record.peso} kg
+                        {record.weight} kg
                       </div>
                       <div className="text-sm text-gray-600">Peso</div>
                       {previous && (
-                        <div className={`text-xs flex items-center justify-center space-x-1 ${getTrendColor(record.peso, previous.peso)}`}>
-                          {getTrendIcon(record.peso, previous.peso)}
-                          <span>{pesoChange > 0 ? '+' : ''}{pesoChange.toFixed(1)} kg</span>
+                        <div className={`text-xs flex items-center justify-center space-x-1 ${getTrendColor(record.weight, previous.weight)}`}>
+                          {getTrendIcon(record.weight, previous.weight)}
+                          <span>{weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)} kg</span>
                         </div>
                       )}
                     </div>
@@ -204,13 +204,13 @@ export default function ProgresoPage() {
                     {/* IMC */}
                     <div className="text-center">
                       <div className="text-lg font-bold text-gray-900">
-                        {record.imc.toFixed(1)}
+                        {record.bmi.toFixed(1)}
                       </div>
                       <div className="text-sm text-gray-600">IMC</div>
                       {previous && (
-                        <div className={`text-xs flex items-center justify-center space-x-1 ${getTrendColor(record.imc, previous.imc)}`}>
-                          {getTrendIcon(record.imc, previous.imc)}
-                          <span>{imcChange > 0 ? '+' : ''}{imcChange.toFixed(1)}</span>
+                        <div className={`text-xs flex items-center justify-center space-x-1 ${getTrendColor(record.bmi, previous.bmi)}`}>
+                          {getTrendIcon(record.bmi, previous.bmi)}
+                          <span>{bmiChange > 0 ? '+' : ''}{bmiChange.toFixed(1)}</span>
                         </div>
                       )}
                     </div>
@@ -231,12 +231,12 @@ export default function ProgresoPage() {
                   </div>
 
                   {/* Cintura si está disponible */}
-                  {record.cintura && (
+                  {record.waist && (
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <div className="text-center">
                         <div className="text-sm text-gray-600">Cintura</div>
                         <div className="font-medium text-gray-900">
-                          {record.cintura} cm
+                          {record.waist} cm
                         </div>
                       </div>
                     </div>

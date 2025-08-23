@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum BiologicalSex {
+  male
+  female
+}
+
+enum ActivityLevel {
+  sedentary
+  light
+  moderate
+  high
+}
+
+enum WeightGoal {
+  lose
+  maintain
+  gain
+}
+
+enum RiskLevel {
+  low
+  moderate
+  high
+}
+
+enum Season {
+  summer
+  winter
+}
+
+// Models
+model User {
+  id              String            @id @default(cuid())
+  healthMetrics   HealthMetrics[]
+  gamification    GamificationData?
+  nutritionalPlan NutritionalPlan[]
+}
+
+model HealthMetrics {
+  id     String   @id @default(cuid())
+  user   User     @relation(fields: [userId], references: [id])
+  userId String
+  date   DateTime @default(now())
+
+  // Embedded-like structures
+  biologicalSex BiologicalSex
+  age           Int
+  goal          WeightGoal
+  activityLevel ActivityLevel
+
+  weight Float
+  height Float
+  waist  Float?
+  hip    Float?
+  neck   Float?
+
+  sleepHours Float
+  season     Season
+
+  bmi            Float
+  whtr           Float?
+  tdee           Float
+  targetCalories Float
+  carbs          Float
+  protein        Float
+  fat            Float
+  riskLevel      RiskLevel
+  healthScore    Int
+}
+
+model GamificationData {
+  id          String  @id @default(cuid())
+  user        User    @relation(fields: [userId], references: [id])
+  userId      String  @unique
+  healthScore Int
+  points      Int
+  streak      Int
+  badges      Badge[]
+  missions    Json // { recordMetrics: boolean, sleep7Hours: boolean, reachCalorieGoal: boolean }
+}
+
+model NutritionalPlan {
+  id              String     @id @default(cuid())
+  user            User       @relation(fields: [userId], references: [id])
+  userId          String
+  goal            WeightGoal
+  targetCalories  Float
+  dailyMealPlans  Json // Array con los días y comidas
+  recommendations Json // { general: string[], specific: string[], seasonal: string[] }
+  createdAt       DateTime   @default(now())
+  validUntil      DateTime
+}
+
+model Badge {
+  id                 String            @id @default(cuid())
+  title              String
+  date               DateTime          @default(now())
+  status             BadgeStatus
+  gamificationData   GamificationData? @relation(fields: [gamificationDataId], references: [id])
+  gamificationDataId String?
+}
+
+enum BadgeStatus {
+  LOCKED
+  UNLOCKED
+}
