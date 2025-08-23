@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Stepper } from "@/components/ui/stepper"
-import { Separator } from "@/components/ui/separator"
+
 import { ArrowLeft, ArrowRight, Save } from "lucide-react"
 
 const steps = ["Perfil", "Medidas", "Hábitos"]
