@@ -4,6 +4,7 @@ import {
   HealthMetrics,
   NutritionalPlan,
   DailyMealPlan,
+  WeightGoal,
 } from "@/types/nutrition";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Actualizar el goal mapeado en userData
-    userData.profile.goal = mappedGoal as any;
+    userData.profile.goal = mappedGoal as WeightGoal;
 
     // Pasarle los parametros al prompt
     const personalizedPrompt = NUTRITION_PROMPT.replace(
@@ -189,8 +190,8 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         goal: userData.profile.goal,
         targetCalories: userData.targetCalories,
-        dailyMealPlans: nutritionPlan.dailyMealPlans as any,
-        recommendations: nutritionPlan.recommendations as any,
+        dailyMealPlans: JSON.parse(JSON.stringify(nutritionPlan.dailyMealPlans)),
+        recommendations: JSON.parse(JSON.stringify(nutritionPlan.recommendations)),
         createdAt: nutritionPlan.createdAt,
         validUntil: nutritionPlan.validUntil,
       },

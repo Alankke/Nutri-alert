@@ -112,7 +112,7 @@ export default function NuevaMetricaPage() {
       }
 
       alert("¡Métricas guardadas exitosamente!")
-    } catch (err) {
+    } catch {
       alert("Error al guardar las métricas")
     }
   }
