@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { geminiModel, NUTRITION_PROMPT } from "@/lib/gemini";
 import { HealthMetrics, NutritionalPlan } from "@/types/nutrition";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -91,6 +93,58 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(nutritionPlan);
   } catch (error) {
     console.error("Error en el endpoint de plan nutricional:", error);
+    return NextResponse.json(
+      { error: "Error interno del servidor" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // Obtener la sesión del usuario autenticado
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Usuario no autenticado" },
+        { status: 401 }
+      );
+    }
+
+    // Obtener los planes nutricionales del usuario desde la base de datos
+    const nutritionalPlans = await prisma.nutritionalPlan.findMany({
+      where: {
+        userId: userId,
+      },
+      orderBy: {
+        createdAt: 'desc', // Más recientes primero
+      },
+    });
+
+    // Transformar los datos de la base de datos al formato de la interfaz
+    const transformedPlans: NutritionalPlan[] = nutritionalPlans.map(plan => ({
+      userId: plan.userId,
+      goal: plan.goal,
+      targetCalories: plan.targetCalories,
+      dailyMealPlans: Array.isArray(plan.dailyMealPlans) ? plan.dailyMealPlans as any[] : [],
+      recommendations: {
+        general: Array.isArray((plan.recommendations as any)?.general) ? (plan.recommendations as any).general : [],
+        specific: Array.isArray((plan.recommendations as any)?.specific) ? (plan.recommendations as any).specific : [],
+        seasonal: Array.isArray((plan.recommendations as any)?.seasonal) ? (plan.recommendations as any).seasonal : [],
+      },
+      createdAt: plan.createdAt,
+      validUntil: plan.validUntil,
+    }));
+
+    return NextResponse.json({
+      success: true,
+      data: transformedPlans,
+      count: transformedPlans.length,
+    });
+
+  } catch (error) {
+    console.error("Error al obtener los planes nutricionales:", error);
     return NextResponse.json(
       { error: "Error interno del servidor" },
       { status: 500 }
