@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Activity, BarChart3, Calendar, Home, Plus, Target, Trophy, Users } from "lucide-react"
 import { useUser } from "@clerk/nextjs"
+import Image from "next/image"
 
 const navigation = [
 	{ name: "Inicio", href: "/", icon: Home },
@@ -34,9 +35,7 @@ export function Navigation() {
 					{/* Logo a la izquierda */}
 					<div className="flex items-center">
 						<Link href="/" className="flex items-center space-x-2">
-							<div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-								<span className="text-white font-bold text-sm">N</span>
-							</div>
+							<Image src="/NutriAlert.png" alt="NutriAlert" width={32} height={32} />
 							<span className="text-xl font-bold text-gray-900">NutriAlert</span>
 						</Link>
 					</div>
