@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { geminiModel, NUTRITION_PROMPT } from "@/lib/gemini";
-import { HealthMetrics, NutritionalPlan, DailyMealPlan } from "@/types/nutrition";
+import {
+  HealthMetrics,
+  NutritionalPlan,
+  DailyMealPlan,
+} from "@/types/nutrition";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
@@ -26,8 +30,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Pasarle los parametros al prompt
-    const personalizedPrompt = NUTRITION_PROMPT
-      .replace("{userId}", userData.userId)
+    const personalizedPrompt = NUTRITION_PROMPT.replace(
+      "{userId}",
+      userData.userId
+    )
       .replace("{biologicalSex}", userData.profile.biologicalSex)
       .replace("{age}", userData.profile.age.toString())
       .replace("{goal}", userData.profile.goal)
@@ -41,10 +47,10 @@ export async function POST(request: NextRequest) {
 
     // Generar el plan nutricional usando Gemini
     const response = await geminiModel.generateContent({
-      model: 'gemini-2.0-flash-001',
+      model: "gemini-2.0-flash-001",
       contents: personalizedPrompt,
     });
-    
+
     // Verificar que tenemos texto en la respuesta
     if (!response.text) {
       console.error("Respuesta de Gemini sin texto:", response);
@@ -53,7 +59,7 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    
+
     const text = response.text;
 
     // Extraer el JSON de la respuesta
@@ -75,16 +81,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let user = await prisma.user.findFirst({
+      where: {
+        id: userData.id,
+      },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          id: userData.id,
+        },
+      });
+    }
+
     // Validar y estructurar la respuesta
     const nutritionPlan: NutritionalPlan = {
-      userId: userData.userId,
+      userId: user.id,
       goal: userData.profile.goal,
       targetCalories: userData.targetCalories,
-      dailyMealPlans: Array.isArray(nutritionPlanData.dailyMealPlans) ? nutritionPlanData.dailyMealPlans : [],
+      dailyMealPlans: Array.isArray(nutritionPlanData.dailyMealPlans)
+        ? nutritionPlanData.dailyMealPlans
+        : [],
       recommendations: {
-        general: Array.isArray((nutritionPlanData.recommendations as { general?: unknown; specific?: unknown; seasonal?: unknown })?.general) ? (nutritionPlanData.recommendations as { general: string[] }).general : [],
-        specific: Array.isArray((nutritionPlanData.recommendations as { general?: unknown; specific?: unknown; seasonal?: unknown })?.specific) ? (nutritionPlanData.recommendations as { specific: string[] }).specific : [],
-        seasonal: Array.isArray((nutritionPlanData.recommendations as { general?: unknown; specific?: unknown; seasonal?: unknown })?.seasonal) ? (nutritionPlanData.recommendations as { seasonal: string[] }).seasonal : [],
+        general: Array.isArray(
+          (
+            nutritionPlanData.recommendations as {
+              general?: unknown;
+              specific?: unknown;
+              seasonal?: unknown;
+            }
+          )?.general
+        )
+          ? (nutritionPlanData.recommendations as { general: string[] }).general
+          : [],
+        specific: Array.isArray(
+          (
+            nutritionPlanData.recommendations as {
+              general?: unknown;
+              specific?: unknown;
+              seasonal?: unknown;
+            }
+          )?.specific
+        )
+          ? (nutritionPlanData.recommendations as { specific: string[] })
+              .specific
+          : [],
+        seasonal: Array.isArray(
+          (
+            nutritionPlanData.recommendations as {
+              general?: unknown;
+              specific?: unknown;
+              seasonal?: unknown;
+            }
+          )?.seasonal
+        )
+          ? (nutritionPlanData.recommendations as { seasonal: string[] })
+              .seasonal
+          : [],
       },
       createdAt: new Date(),
       validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
@@ -104,7 +158,7 @@ export async function GET(_request: NextRequest) {
   try {
     // Obtener la sesión del usuario autenticado
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: "Usuario no autenticado" },
@@ -114,16 +168,16 @@ export async function GET(_request: NextRequest) {
 
     let user = await prisma.user.findFirst({
       where: {
-        id: userId
-      }
-    })
+        id: userId,
+      },
+    });
 
-    if(!user) {
+    if (!user) {
       user = await prisma.user.create({
         data: {
-          id: userId
-        }
-      })
+          id: userId,
+        },
+      });
     }
 
     // Obtener los planes nutricionales del usuario desde la base de datos
@@ -132,31 +186,64 @@ export async function GET(_request: NextRequest) {
         userId: user.id,
       },
       orderBy: {
-        createdAt: 'desc', // Más recientes primero
+        createdAt: "desc", // Más recientes primero
       },
     });
 
     // Transformar los datos de la base de datos al formato de la interfaz
-    const transformedPlans: NutritionalPlan[] = nutritionalPlans.map(plan => ({
-      userId: plan.userId,
-      goal: plan.goal,
-      targetCalories: plan.targetCalories,
-      dailyMealPlans: Array.isArray(plan.dailyMealPlans) ? plan.dailyMealPlans as unknown as DailyMealPlan[] : [],
-      recommendations: {
-        general: Array.isArray((plan.recommendations as { general?: string[]; specific?: string[]; seasonal?: string[] })?.general) ? (plan.recommendations as { general: string[] }).general : [],
-        specific: Array.isArray((plan.recommendations as { general?: string[]; specific?: string[]; seasonal?: string[] })?.specific) ? (plan.recommendations as { specific: string[] }).specific : [],
-        seasonal: Array.isArray((plan.recommendations as { general?: string[]; specific?: string[]; seasonal?: string[] })?.seasonal) ? (plan.recommendations as { seasonal: string[] }).seasonal : [],
-      },
-      createdAt: plan.createdAt,
-      validUntil: plan.validUntil,
-    }));
+    const transformedPlans: NutritionalPlan[] = nutritionalPlans.map(
+      (plan) => ({
+        userId: plan.userId,
+        goal: plan.goal,
+        targetCalories: plan.targetCalories,
+        dailyMealPlans: Array.isArray(plan.dailyMealPlans)
+          ? (plan.dailyMealPlans as unknown as DailyMealPlan[])
+          : [],
+        recommendations: {
+          general: Array.isArray(
+            (
+              plan.recommendations as {
+                general?: string[];
+                specific?: string[];
+                seasonal?: string[];
+              }
+            )?.general
+          )
+            ? (plan.recommendations as { general: string[] }).general
+            : [],
+          specific: Array.isArray(
+            (
+              plan.recommendations as {
+                general?: string[];
+                specific?: string[];
+                seasonal?: string[];
+              }
+            )?.specific
+          )
+            ? (plan.recommendations as { specific: string[] }).specific
+            : [],
+          seasonal: Array.isArray(
+            (
+              plan.recommendations as {
+                general?: string[];
+                specific?: string[];
+                seasonal?: string[];
+              }
+            )?.seasonal
+          )
+            ? (plan.recommendations as { seasonal: string[] }).seasonal
+            : [],
+        },
+        createdAt: plan.createdAt,
+        validUntil: plan.validUntil,
+      })
+    );
 
     return NextResponse.json({
       success: true,
       data: transformedPlans,
       count: transformedPlans.length,
     });
-
   } catch (error) {
     console.error("Error al obtener los planes nutricionales:", error);
     return NextResponse.json(
