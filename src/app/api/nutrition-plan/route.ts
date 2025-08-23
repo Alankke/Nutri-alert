@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(_: NextRequest) {
+export async function GET() {
   try {
     // Obtener la sesión del usuario autenticado
     const { userId } = await auth();

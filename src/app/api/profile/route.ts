@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     // Obtener la sesión del usuario autenticado
     const { userId } = await auth();
