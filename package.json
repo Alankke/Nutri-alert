@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@google/genai": "^1.15.0",
     "@hono/clerk-auth": "^3.0.3",
     "hono": "^4.9.4",
     "next": "15.5.0",
