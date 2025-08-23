@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Crear el prompt personalizado con los datos del usuario
+    // Pasarle los parametros al prompt
     const personalizedPrompt = NUTRITION_PROMPT
       .replace("{userId}", userData.userId)
       .replace("{biologicalSex}", userData.profile.biologicalSex)

@@ -1,36 +1,30 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { Navigation } from "@/components/navigation"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "NutriAlert",
-  description:
-    "NutriAlert es una aplicación que te ayuda a generar un plan de alimentación",
-};
+  title: "NutriAlert - Salud Predictiva con Gamificación",
+  description: "Aplicación web de salud pública predictiva con gamificación para orientación preventiva nutricional",
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="es">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ClerkProvider>{children}</ClerkProvider>
+      <body className={inter.className}>
+        <div className="min-h-screen bg-gray-50">
+          <Navigation />
+          <main className="container mx-auto px-4 py-8">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
-  );
+  )
 }
