@@ -21,6 +21,10 @@ export async function POST(request: NextRequest) {
     // Obtener los datos del usuario del body
     const userData: HealthMetrics = await request.json();
 
+    // Debug: ver qué valores estamos recibiendo
+    console.log("Goal recibido:", userData.profile.goal);
+    console.log("Tipo de goal:", typeof userData.profile.goal);
+
     // Validar que tenemos todos los datos necesarios
     if (!userData.profile || !userData.measurements || !userData.lifestyle) {
       return NextResponse.json(
@@ -28,6 +32,41 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Función para mapear valores en español a inglés para Prisma
+    const mapGoalToEnglish = (goal: string): string => {
+      const goalMap: Record<string, string> = {
+        "bajar": "lose",
+        "perder": "lose",
+        "adelgazar": "lose",
+        "mantener": "maintain",
+        "conservar": "maintain",
+        "subir": "gain",
+        "aumentar": "gain",
+        "ganar": "gain",
+        "engordar": "gain"
+      };
+      
+      return goalMap[goal.toLowerCase()] || goal;
+    };
+
+    // Mapear el goal a inglés si es necesario
+    const mappedGoal = mapGoalToEnglish(userData.profile.goal);
+    
+    // Debug: mostrar el mapeo
+    console.log("Goal mapeado:", mappedGoal);
+    
+    // Validar que el goal mapeado sea un valor válido para Prisma
+    const validGoals = ["lose", "maintain", "gain"];
+    if (!validGoals.includes(mappedGoal)) {
+      return NextResponse.json(
+        { error: `Goal inválido: ${userData.profile.goal} (mapeado a: ${mappedGoal}). Valores permitidos: ${validGoals.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    // Actualizar el goal mapeado en userData
+    userData.profile.goal = mappedGoal as any;
 
     // Pasarle los parametros al prompt
     const personalizedPrompt = NUTRITION_PROMPT.replace(
@@ -144,7 +183,24 @@ export async function POST(request: NextRequest) {
       validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
     };
 
-    return NextResponse.json(nutritionPlan);
+    // Guardar el plan nutricional en la base de datos
+    const savedNutritionPlan = await prisma.nutritionalPlan.create({
+      data: {
+        userId: user.id,
+        goal: userData.profile.goal,
+        targetCalories: userData.targetCalories,
+        dailyMealPlans: nutritionPlan.dailyMealPlans as any,
+        recommendations: nutritionPlan.recommendations as any,
+        createdAt: nutritionPlan.createdAt,
+        validUntil: nutritionPlan.validUntil,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Plan nutricional generado y guardado exitosamente",
+      data: savedNutritionPlan,
+    });
   } catch (error) {
     console.error("Error en el endpoint de plan nutricional:", error);
     return NextResponse.json(
