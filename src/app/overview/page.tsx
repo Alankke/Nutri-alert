@@ -7,43 +7,43 @@ import { TrendingUp, TrendingDown, Minus, Zap, Target, AlertTriangle } from "luc
 export default function OverviewPage() {
   const results = mockHealthResults
 
-  const getIMCCategoryColor = (categoria: string) => {
-    switch (categoria) {
-      case "bajo_peso":
+  const getBMICategoryColor = (category: string) => {
+    switch (category) {
+      case "underweight":
         return "text-blue-600"
       case "normal":
         return "text-green-600"
-      case "sobrepeso":
+      case "overweight":
         return "text-yellow-600"
-      case "obesidad":
+      case "obese":
         return "text-red-600"
       default:
         return "text-gray-600"
     }
   }
 
-  const getIMCCategoryLabel = (categoria: string) => {
-    switch (categoria) {
-      case "bajo_peso":
+  const getBMICategoryLabel = (category: string) => {
+    switch (category) {
+      case "underweight":
         return "Bajo Peso"
       case "normal":
         return "Peso Normal"
-      case "sobrepeso":
+      case "overweight":
         return "Sobrepeso"
-      case "obesidad":
+      case "obese":
         return "Obesidad"
       default:
         return "No definido"
     }
   }
 
-  const getTrendIcon = (objetivo: string) => {
-    switch (objetivo) {
-      case "bajar":
+  const getTrendIcon = (goal: string) => {
+    switch (goal) {
+      case "lose":
         return <TrendingDown className="w-5 h-5 text-green-600" />
-      case "subir":
+      case "gain":
         return <TrendingUp className="w-5 h-5 text-blue-600" />
-      case "mantener":
+      case "maintain":
         return <Minus className="w-5 h-5 text-gray-600" />
       default:
         return null
@@ -76,14 +76,14 @@ export default function OverviewPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-gray-900 mb-2">
-                {results.imc.toFixed(1)}
+                {results.bmi.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600 mb-1">IMC</div>
               <div className={cn(
                 "text-sm font-medium px-2 py-1 rounded-full",
-                getIMCCategoryColor(results.categoriaIMC)
+                getBMICategoryColor(results.bmiCategory)
               )}>
-                {getIMCCategoryLabel(results.categoriaIMC)}
+                {getBMICategoryLabel(results.bmiCategory)}
               </div>
             </div>
 
@@ -101,7 +101,7 @@ export default function OverviewPage() {
 
             <div className="text-center">
               <div className="mb-2">
-                <RiskPill risk={results.riesgo} />
+                <RiskPill risk={results.riskLevel} />
               </div>
               <div className="text-sm text-gray-600">Nivel de Riesgo</div>
             </div>
@@ -134,13 +134,13 @@ export default function OverviewPage() {
                 <div className="text-right">
                   <div className="text-sm text-gray-600">Objetivo</div>
                   <div className="text-2xl font-bold text-green-600">
-                    {results.caloriasObjetivo} kcal
+                    {results.targetCalories} kcal
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
-                {getTrendIcon("bajar")}
+                {getTrendIcon("lose")}
                 <span>Déficit calórico para bajar de peso</span>
               </div>
             </div>
@@ -155,7 +155,7 @@ export default function OverviewPage() {
                     <span className="text-sm font-medium">Carbohidratos</span>
                   </div>
                   <div className="text-sm font-bold text-gray-900">
-                    {results.macros.carbohidratos}g
+                    {results.macros.carbs}g
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -164,7 +164,7 @@ export default function OverviewPage() {
                     <span className="text-sm font-medium">Proteínas</span>
                   </div>
                   <div className="text-sm font-bold text-gray-900">
-                    {results.macros.proteinas}g
+                    {results.macros.protein}g
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -173,7 +173,7 @@ export default function OverviewPage() {
                     <span className="text-sm font-medium">Grasas</span>
                   </div>
                   <div className="text-sm font-bold text-gray-900">
-                    {results.macros.grasas}g
+                    {results.macros.fat}g
                   </div>
                 </div>
               </div>
@@ -195,9 +195,9 @@ export default function OverviewPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            {results.consejos.map((consejo, index) => (
+            {results.advice.map((advice, index) => (
               <Badge key={index} variant="outline" className="text-sm">
-                {consejo}
+                {advice}
               </Badge>
             ))}
           </div>

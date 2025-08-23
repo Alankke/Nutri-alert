@@ -4,13 +4,13 @@ import { RiskPill } from "./risk-pill"
 interface DataTableProps {
   data: Array<{
     id: string
-    nombre: string
-    edad: number
-    imc: number
+    name: string
+    age: number
+    bmi: number
     whtr: number
     healthScore: number
-    riesgo: "verde" | "amarillo" | "rojo"
-    ultimaActualizacion: string
+    riskLevel: "low" | "moderate" | "high"
+    lastUpdate: string
   }>
   onRowClick?: (id: string) => void
   className?: string
@@ -42,9 +42,9 @@ export function DataTable({ data, onRowClick, className }: DataTableProps) {
                 )}
                 onClick={() => onRowClick?.(row.id)}
               >
-                <td className="p-4 font-medium">{row.nombre}</td>
-                <td className="p-4">{row.edad} años</td>
-                <td className="p-4">{row.imc.toFixed(1)}</td>
+                <td className="p-4 font-medium">{row.name}</td>
+                <td className="p-4">{row.age} años</td>
+                <td className="p-4">{row.bmi.toFixed(1)}</td>
                 <td className="p-4">{row.whtr.toFixed(2)}</td>
                 <td className="p-4">
                   <div className="flex items-center">
@@ -58,9 +58,9 @@ export function DataTable({ data, onRowClick, className }: DataTableProps) {
                   </div>
                 </td>
                 <td className="p-4">
-                  <RiskPill risk={row.riesgo} />
+                  <RiskPill risk={row.riskLevel} />
                 </td>
-                <td className="p-4 text-sm text-gray-500">{row.ultimaActualizacion}</td>
+                <td className="p-4 text-sm text-gray-500">{row.lastUpdate}</td>
               </tr>
             ))}
           </tbody>
